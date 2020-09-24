@@ -2,6 +2,7 @@
 
 - The pre-signed URL will be expired in 60 sec.
 - In this project, [Custom Authorizer Lambda Function](https://github.com/palmseung/serverless-jwt-authorizer) is used to authorize a request.
+- JWT is consist of 'companyId' and 'userId' encrypted by HS512 and they are extracted from JWT in the authorizer and transferred to this download-api using using context(in authorizer function) & mapping template(in target function method).
 - To download a file over 10MB, a pre-signedUrl is used to get URL to download a specific file in S3.
 
   ```
