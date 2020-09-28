@@ -16,12 +16,14 @@ module.exports.downloadFromS3 = async (event, context, callback) => {
 
   let params = {
     Bucket : bucket,
-    Key : `${companyId}/${userId}/1.pdf`.normalize('NFD'),
-    Expires : 60 //unit:sec
+    Key : `${companyId}/${userId}/123.gif`
   }
 
-  const url = await s3.getSignedUrl("getObject", params);
-  console.log("url: ", url);
-  
-  callback(null, url);
+try{
+  const imageFIle = await s3.getObject(params).promise();
+  console.log("imageFile: ", imageFIle.Body.toString('base64'));
+  callback(null, imageFIle.Body);
+}catch(err){
+  callback(null, "The file doesn't exist!");
+}
 };
