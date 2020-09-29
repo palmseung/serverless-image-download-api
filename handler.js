@@ -1,29 +1,33 @@
 'use strict';
 
 const AWS = require('aws-sdk');
-var s3 = new AWS.S3;
+const mysql2 = require('mysql');
+const s3 = AWS.S3;
 
-const bucket = process.env.bucket;
+const connection = mysql2.createConnection({
+  host: process.env.dbhost,
+  user: process.env.dbuser,
+  password: process.env.dbpassword,
+  database: process.env.db,
+  port: process.env.dbport
+});
 
-module.exports.downloadFromS3 = async (event, context, callback) => {
-  console.log("input: ", event);
-  console.log("userId: ", event.userId);
-  console.log("companyId: ", event.companyId);
-  console.log("context: ", context);
+module.exports.downloadFromS3 = (event, context) => {
+  connection.connect();
+  console.log("userId : ", event.userId);
+  console.log("companyId : ", event.companyId);
 
-  const companyId = event.companyId;
-  const userId = event.userId;
-
-  let params = {
-    Bucket : bucket,
-    Key : `${companyId}/${userId}/123.gif`
-  }
-
-try{
-  const imageFIle = await s3.getObject(params).promise();
-  console.log("imageFile: ", imageFIle.Body.toString('base64'));
-  callback(null, imageFIle.Body);
-}catch(err){
-  callback(null, "The file doesn't exist!");
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM test_files`;
+    connection.query(sql, (err, results, fields) => {
+      if (err) {
+        console.log(err);
+        reject(err);
+      } else {
+        console.log("fileds: ", fields);
+        resolve({statusCode: 200, body: {results}});
+      }
+    });
+    connection.end();
+  });
 }
-};
