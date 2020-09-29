@@ -1,25 +1,40 @@
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3;
 
-const BUCKET = process.env.s3_bucket;
+const THUMBNAIL_BUCKET = process.env.s3_bucket; //I will update it later.
+const ORIGINAL_BUCKET = process.env.s3_bucket; //I will update it later.
 const ENCODE_BASE64 = 'base64';
 
-async function getImageFromBucket(params){
-    const param = {
-        Bucket: BUCKET,
+async function getImage(params){
+    let imageFile;
+    try{
+        imageFile = await getImageFromBucket(params, THUMBNAIL_BUCKET);
+    }catch{
+        console.log("The thumbnail image doesn't exist and it is getting from the original bucket...")
+        imageFile = await getImageFromBucket(params, ORIGINAL_BUCKET);
+    }finally{
+        return imageFile.toString(ENCODE_BASE64);
+    }
+}
+
+async function getImageFromBucket(params, bucketName){
+    const param = createParamForBucket(params, bucketName);
+    const object = await s3.getObject(param).promise();
+    
+    return object.Body;
+}
+
+function createParamForBucket(params, bucketName){
+    const paramsForBucket = {
+        Bucket: bucketName,
         Key: `${params.path}/${params.file_name}`
     }
-    console.log("param for s3.getObject :", param);
+    console.log(`params for ${bucketName} :`, paramsForBucket);
 
-    const object = await s3.getObject(param).promise();
-    console.log("object from s3 : ", object);
-
-    const imageFile = object.Body;
-    console.log("imageFileFromS3 : ", imageFile);
-    console.log('base64encoded imageFileFroms3 : ', imageFile.toString(ENCODE_BASE64));
-    return imageFile.toString(ENCODE_BASE64);
+    return paramsForBucket;
 }
 
 module.exports = { 
-	getImageFromBucket: getImageFromBucket
+    getImage: getImage,
+    getImageFromBucket: getImageFromBucket
 };

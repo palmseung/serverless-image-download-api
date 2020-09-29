@@ -14,5 +14,5 @@ module.exports.downloadFromS3 = (event, context) => {
 
   return Promise.resolve(params)
         .then(FILE_PATH_HANDLER.getFilePath)
-        .then(IMAGE_HANDLER.getImageFromBucket);
+        .then(IMAGE_HANDLER.getImage);
 }
